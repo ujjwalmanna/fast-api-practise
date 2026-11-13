@@ -1,0 +1,56 @@
+# Local container run:  docker compose up --build   ->  http://localhost:8000/docs
+#
+# The `api` service alone is enough (SQLite, no external dependency). The
+# commented `db` service shows the PostgreSQL switch, which is one env var.
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      # `staging`, not `production`, so /docs stays available in a local
+      # container while the deployment-safety validation still applies.
+      APP_ENV: staging
+      APP_DEBUG: "false"
+      APP_LOG_JSON: "true"
+      APP_LOG_LEVEL: INFO
+      # Demo value only. In a real deployment inject this from a secrets
+      # manager and never commit it.
+      APP_SECRET_KEY: "compose-only-secret-key-replace-me-in-real-deployments"
+      APP_DATABASE_URL: "sqlite+aiosqlite:////data/api_framework.db"
+      APP_CORS_ORIGINS: '["http://localhost:3000"]'
+      APP_FIRST_ADMIN_EMAIL: "admin@example.com"
+      APP_FIRST_ADMIN_PASSWORD: "ChangeMe123!"
+      # --- PostgreSQL instead: uncomment the db service below and swap this in
+      # APP_DATABASE_URL: "postgresql+asyncpg://api:api@db:5432/api"
+    volumes:
+      # Named volume so the SQLite file survives a container rebuild.
+      - api-data:/data
+    restart: unless-stopped
+    # depends_on:
+    #   db:
+    #     condition: service_healthy
+
+  # Uncomment for PostgreSQL. Also add `asyncpg` to the project dependencies.
+  # db:
+  #   image: postgres:17-alpine
+  #   environment:
+  #     POSTGRES_USER: api
+  #     POSTGRES_PASSWORD: api
+  #     POSTGRES_DB: api
+  #   volumes:
+  #     - pg-data:/var/lib/postgresql/data
+  #   healthcheck:
+  #     # Gate the API on the database being ready to accept queries, not just
+  #     # on the container having started.
+  #     test: ["CMD-SHELL", "pg_isready -U api -d api"]
+  #     interval: 5s
+  #     timeout: 5s
+  #     retries: 10
+
+volumes:
+  api-data:
+  # pg-data:

@@ -1,0 +1,31 @@
+# Keep the build context small and secrets out of the image.
+.git
+.github
+.venv
+venv
+__pycache__
+*.py[cod]
+*.egg-info
+
+# Never bake local config or databases into an image.
+.env
+.env.*
+!.env.example
+*.db
+*.db-journal
+*.sqlite3
+
+.pytest_cache
+.mypy_cache
+.ruff_cache
+.coverage
+coverage.xml
+htmlcov
+
+tests
+docs
+.idea
+.vscode
+
+# NOTE: README.md is intentionally NOT ignored - pyproject.toml declares it as
+# the project readme, so the build fails without it.
